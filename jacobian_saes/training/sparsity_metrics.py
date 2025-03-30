@@ -100,6 +100,17 @@ def _kurtosis(x: Jacobian, eps: float = 1e-20):
 def kurtosis(x: Jacobian, scale: float = 1.0, eps: float = 1e-20):
     return scale * _kurtosis(x, eps).mean()
 
+def l1_of_l05_per_k1(x: Jacobian, eps: float = 1e-10):
+    """
+    Applies L0.5 quasi-norm across input dimension (k1), and L1-norm on all other dimensions.
+
+    Normalized to be comparable to `l1`.
+    """
+    x_abs = x.abs() + eps
+    l05_norm = torch.norm(x_abs, p=0.5, dim=-1)  # [batch, seq_pos, k2]
+
+    # Normalize by input dimension size to make scale comparable to l1
+    return l05_norm.mean() / x.shape[-1]
 
 sparsity_metrics = {
     "l1": l1,
@@ -116,4 +127,5 @@ sparsity_metrics = {
     "loge": log_exp,
     "lp": lp,
     "l4": kurtosis,
+    "l1_l05": l1_of_l05_per_k1,
 }
