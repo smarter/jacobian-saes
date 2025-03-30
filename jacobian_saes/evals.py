@@ -41,8 +41,27 @@ jac_normed_metrics: FuncDict = {
     "hist": lambda jac: jac.flatten(start_dim=-2).sort(dim=-1).values,
     "abs_hist": lambda jac: jac.abs().flatten(start_dim=-2).sort(dim=-1).values,
     "abs_max": lambda jac: jac.abs().flatten(start_dim=-2).max(dim=-1).values,
+
+    "abs_hist_summed_inputs": lambda jac: jac.abs().sum(dim=-1).sort(dim=-1).values,
+    "abs_hist_summed_outputs": lambda jac: jac.abs().sum(dim=-2).sort(dim=-1).values,
+
+    # This metric goes down when each output dimension only depends on a small number of input dimensions
+    "abs_max_of_summed_inputs": lambda jac: jac.abs().sum(dim=-1).max(dim=-1).values,
+    # This metric goes down when each input dimension only affects a small number of output dimensions
+    "abs_max_of_summed_outputs": lambda jac: jac.abs().sum(dim=-2).max(dim=-1).values,
+
     **{
         f"above_{thresh}": lambda jac: (jac.abs() > thresh).sum(dim=(-1, -2)).float()
+        for thresh in jacobian_sparsity_thresholds
+    },
+
+    # Use scaled thresholds for summed dimensions
+    **{
+        f"abs_above_summed_inputs_{thresh}": lambda jac: (jac.abs().sum(dim=-1) > thresh * jac.shape[-1]).sum(dim=-1).float()
+        for thresh in jacobian_sparsity_thresholds
+    },
+    **{
+        f"abs_above_summed_outputs_{thresh}": lambda jac: (jac.abs().sum(dim=-2) > thresh * jac.shape[-2]).sum(dim=-1).float()
         for thresh in jacobian_sparsity_thresholds
     },
 }
