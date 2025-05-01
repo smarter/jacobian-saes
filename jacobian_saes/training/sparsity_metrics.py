@@ -112,6 +112,18 @@ def l1_of_l05_per_k1(x: Jacobian, eps: float = 1e-10):
     # Normalize by input dimension size to make scale comparable to l1
     return l05_norm.mean() / x.shape[-1]
 
+def l1_of_l09_per_k1(x: Jacobian, eps: float = 1e-10):
+    """
+    Applies L0.9 quasi-norm across input dimension (k1), and L1-norm on all other dimensions.
+
+    Normalized to be comparable to `l1`.
+    """
+    x_abs = x.abs() + eps
+    l05_norm = torch.norm(x_abs, p=0.9, dim=-1)  # [batch, seq_pos, k2]
+
+    # Normalize by input dimension size to make scale comparable to l1
+    return l05_norm.mean() / x.shape[-1]
+
 sparsity_metrics = {
     "l1": l1,
     "l1nb": l1_over_l2_norm_per_batch,
@@ -128,4 +140,5 @@ sparsity_metrics = {
     "lp": lp,
     "l4": kurtosis,
     "l1_l05": l1_of_l05_per_k1,
+    "l1_l09": l1_of_l09_per_k1,
 }
